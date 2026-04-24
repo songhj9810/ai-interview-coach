@@ -1,0 +1,9 @@
+# Python
+__pycache__/
+.venv/
+
+# 환경변수
+.env
+
+# LangGraph
+.langgraph_api/
