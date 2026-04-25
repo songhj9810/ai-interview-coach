@@ -1,5 +1,6 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
+import { BrowserRouter } from "react-router-dom"
 
 import { AppSidebar } from "@/components/app-sidebar.tsx"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar.tsx"
@@ -16,19 +17,21 @@ import "./index.css"
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>
-      <TooltipProvider>
-        <SidebarProvider>
-          <SessionProvider>
-            <InterviewProvider>
-              <AppSidebar />
-              <SidebarInset>
-                <App />
-              </SidebarInset>
-            </InterviewProvider>
-          </SessionProvider>
-        </SidebarProvider>
-        <Toaster />
-      </TooltipProvider>
+      <BrowserRouter>
+        <TooltipProvider>
+          <SidebarProvider>
+            <SessionProvider>
+              <InterviewProvider>
+                <AppSidebar />
+                <SidebarInset>
+                  <App />
+                </SidebarInset>
+              </InterviewProvider>
+            </SessionProvider>
+          </SidebarProvider>
+          <Toaster />
+        </TooltipProvider>
+      </BrowserRouter>
     </ThemeProvider>
   </StrictMode>
 )
