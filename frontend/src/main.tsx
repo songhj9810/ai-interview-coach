@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client"
 
 import { Toaster } from "@/components/ui/sonner.tsx"
 import { TooltipProvider } from "@/components/ui/tooltip.tsx"
+import { InterviewProvider } from "@/providers/interview"
 import { SessionProvider } from "@/providers/session"
 import { ThemeProvider } from "@/providers/theme"
 
@@ -15,7 +16,9 @@ createRoot(document.getElementById("root")!).render(
     <ThemeProvider>
       <TooltipProvider>
         <SessionProvider>
-          <App />
+          <InterviewProvider>
+            <App />
+          </InterviewProvider>
         </SessionProvider>
         <Toaster />
       </TooltipProvider>
