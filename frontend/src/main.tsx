@@ -1,6 +1,8 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 
+import { AppSidebar } from "@/components/app-sidebar.tsx"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar.tsx"
 import { Toaster } from "@/components/ui/sonner.tsx"
 import { TooltipProvider } from "@/components/ui/tooltip.tsx"
 import { InterviewProvider } from "@/providers/interview"
@@ -15,11 +17,16 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>
       <TooltipProvider>
-        <SessionProvider>
-          <InterviewProvider>
-            <App />
-          </InterviewProvider>
-        </SessionProvider>
+        <SidebarProvider>
+          <SessionProvider>
+            <InterviewProvider>
+              <AppSidebar />
+              <SidebarInset>
+                <App />
+              </SidebarInset>
+            </InterviewProvider>
+          </SessionProvider>
+        </SidebarProvider>
         <Toaster />
       </TooltipProvider>
     </ThemeProvider>
