@@ -1,5 +1,6 @@
 from langgraph.graph import END, START, StateGraph
 
+from core.database import checkpointer
 from core.nodes import (
     decide_next_action,
     executive_evaluate,
@@ -82,4 +83,4 @@ builder.add_conditional_edges(
 )
 builder.add_edge("wrap_up", END)
 
-graph = builder.compile()
+graph = builder.compile(checkpointer=checkpointer)
