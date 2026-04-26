@@ -1,4 +1,5 @@
 import json
+import os
 import uuid
 from contextlib import asynccontextmanager
 from typing import cast
@@ -20,6 +21,8 @@ from core.database import create_session, finish_session, get_sessions, init_db,
 from core.graph import graph
 from core.state import InterviewState
 
+CORS_ORIGINS = os.environ["CORS_ORIGINS"].split(",")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -34,7 +37,7 @@ app = FastAPI(lifespan=lifespan)
 # CORS 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=CORS_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
