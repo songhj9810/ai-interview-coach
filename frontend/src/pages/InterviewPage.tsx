@@ -8,8 +8,6 @@ import { Button } from "@/components/ui/button"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { useInterview } from "@/providers/interview"
 
-import { InterviewLoading } from "./InterviewLoading"
-
 export default function InterviewPage() {
   const navigate = useNavigate()
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -43,7 +41,6 @@ export default function InterviewPage() {
   }, [isLoading, isFinished])
 
   if (!sessionId) return <Navigate to="/404" />
-  if (isLoading) return <InterviewLoading />
 
   return (
     <>
