@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
+from langgraph.graph.state import CompiledStateGraph
 
 from api.schema import (
     AnswerRequest,
@@ -18,16 +19,20 @@ from api.schema import (
     StartRequest,
 )
 from core.database import create_session, finish_session, get_sessions, init_db, pool
-from core.graph import graph
+from core.graph import build_graph
 from core.state import InterviewState
 
 CORS_ORIGINS = os.environ["CORS_ORIGINS"].split(",")
 
+graph: CompiledStateGraph | None = None  # lifespan에서 초기화
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global graph
     await pool.open()  # 데이터베이스 연결 열기
-    await init_db()  # 데이터베이스 초기화
+    checkpointer = await init_db()  # 데이터베이스 초기화
+    graph = build_graph(checkpointer)
     yield  # 앱 실행
     await pool.close()  # 데이터베이스 연결 닫기
 
@@ -60,6 +65,7 @@ NODE_MAP = {
 # 모의면접 시작
 @app.post("/interview/start")
 async def start_interview(req: StartRequest):
+    assert graph is not None
     session_id = str(uuid.uuid4())  # 고유한 세션 ID 생성
     config: RunnableConfig = {"configurable": {"thread_id": session_id}}
 
@@ -84,6 +90,7 @@ async def start_interview(req: StartRequest):
 # 답변 제출
 @app.post("/interview/answer")
 async def submit_answer(req: AnswerRequest):
+    assert graph is not None
     config: RunnableConfig = {"configurable": {"thread_id": req.session_id}}
 
     check_state = await graph.aget_state(config=config)
@@ -93,6 +100,7 @@ async def submit_answer(req: AnswerRequest):
         raise HTTPException(status_code=400, detail="이미 종료된 면접입니다.")
 
     async def event_stream():
+        assert graph is not None
         try:
             async for update in graph.astream(
                 {"messages": [HumanMessage(content=req.answer)]},  # type: ignore
@@ -131,6 +139,7 @@ async def submit_answer(req: AnswerRequest):
 # 대화 기록 조회
 @app.get("/interview/messages", response_model=MessagesResponse)
 async def get_messages(session_id: str):
+    assert graph is not None
     config: RunnableConfig = {"configurable": {"thread_id": session_id}}
 
     state = await graph.aget_state(config=config)
@@ -155,6 +164,7 @@ async def get_messages(session_id: str):
 # 보고서 조회
 @app.get("/interview/report", response_model=ReportResponse)
 async def get_report(session_id: str):
+    assert graph is not None
     config: RunnableConfig = {"configurable": {"thread_id": session_id}}
 
     state = await graph.aget_state(config=config)

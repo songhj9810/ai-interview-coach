@@ -1,6 +1,6 @@
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.graph import END, START, StateGraph
 
-from core.database import checkpointer
 from core.nodes import (
     decide_next_action,
     executive_evaluate,
@@ -83,4 +83,6 @@ builder.add_conditional_edges(
 )
 builder.add_edge("wrap_up", END)
 
-graph = builder.compile(checkpointer=checkpointer)
+
+def build_graph(checkpointer: AsyncPostgresSaver):
+    return builder.compile(checkpointer=checkpointer)

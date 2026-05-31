@@ -2,14 +2,15 @@ import os
 
 from dotenv import load_dotenv
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
-from psycopg.rows import dict_row
+from psycopg import AsyncConnection
+from psycopg.rows import DictRow, dict_row
 from psycopg_pool import AsyncConnectionPool
 
 load_dotenv()
 DATABASE_URL = os.environ["DATABASE_URL"]
 
 # 공용 연결 풀 생성
-pool = AsyncConnectionPool(
+pool: AsyncConnectionPool[AsyncConnection[DictRow]] = AsyncConnectionPool(
     conninfo=DATABASE_URL,
     open=False,
     kwargs={
@@ -18,11 +19,9 @@ pool = AsyncConnectionPool(
     },
 )
 
-# 랭그래프 체크포인터
-checkpointer = AsyncPostgresSaver(pool)  # type: ignore
 
-
-async def init_db():
+async def init_db() -> AsyncPostgresSaver:
+    checkpointer = AsyncPostgresSaver(pool)  # 랭그래프 체크포인터
     await checkpointer.setup()
 
     # 테이블 생성
@@ -35,6 +34,8 @@ async def init_db():
                 created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
             )
             """)
+
+    return checkpointer
 
 
 # 모의면접 시작 시 세션 생성
