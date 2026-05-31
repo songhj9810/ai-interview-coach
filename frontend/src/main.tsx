@@ -1,6 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
+import { AppSidebar } from '@/components/app-sidebar'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { InterviewProvider } from '@/providers/interview'
@@ -17,8 +19,13 @@ createRoot(document.getElementById('root')!).render(
       <SessionProvider>
         <InterviewProvider>
           <TooltipProvider>
-            <App />
-            <Toaster />
+            <SidebarProvider>
+              <AppSidebar />
+              <SidebarInset>
+                <App />
+              </SidebarInset>
+              <Toaster />
+            </SidebarProvider>
           </TooltipProvider>
         </InterviewProvider>
       </SessionProvider>
