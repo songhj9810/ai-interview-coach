@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { CircularScore } from '@/components/circular-score'
@@ -15,6 +15,7 @@ import { ReportLoading } from './ReportLoading'
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 export default function ReportPage() {
+  const navigate = useNavigate()
   const { sessionId } = useParams<{ sessionId: string }>()
 
   const [title, setTitle] = useState('')
@@ -31,7 +32,17 @@ export default function ReportPage() {
         const response = await fetch(
           `${API_URL}/interview/report?session_id=${sessionId}`
         )
+        if (response.status === 404) {
+          navigate('/404', { replace: true })
+          return
+        }
+        if (response.status === 400) {
+          // 면접이 아직 종료되지 않은 경우 면접 페이지로 이동
+          navigate(`/interview/${sessionId}`, { replace: true })
+          return
+        }
         if (!response.ok) throw new Error('Failed to load report')
+
         const data: ReportResponse = await response.json()
         setTitle(data.title)
         setEvaluations(data.evaluations)
@@ -45,7 +56,7 @@ export default function ReportPage() {
     }
 
     fetchReport()
-  }, [sessionId])
+  }, [sessionId, navigate])
 
   if (!sessionId) return <Navigate to="/404" replace />
   if (isLoading) return <ReportLoading />

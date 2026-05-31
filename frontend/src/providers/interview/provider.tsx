@@ -47,6 +47,7 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify(form),
         })
         if (!response.ok) throw new Error('Failed to start interview')
+
         const data = await response.json()
         navigate(`/interview/${data.session_id}`)
         refresh() // 사이드바 새로고침
@@ -81,6 +82,10 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ session_id: sessionId, answer: answer }),
         })
+        if (response.status === 404) {
+          navigate('/404', { replace: true })
+          return
+        }
         if (!response.ok) throw new Error('Failed to submit answer')
         if (!response.body) throw new Error('No response body')
 
@@ -145,36 +150,48 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
         }))
       }
     },
-    [refresh]
+    [navigate, refresh]
   )
 
-  const loadMessages = useCallback(async (sessionId: string) => {
-    setState({
-      title: '',
-      isLoading: true,
-      loadingMessage: null,
-      messages: [],
-      isFinished: false,
-    })
-    try {
-      const response = await fetch(
-        `${API_URL}/interview/messages?session_id=${sessionId}`
-      )
-      if (!response.ok) throw new Error('Failed to load messages')
-      const data: MessagesResponse = await response.json()
-      setState((prev) => ({
-        ...prev,
-        title: data.title,
-        messages: data.messages,
-        isFinished: data.is_finished,
-      }))
-    } catch (error) {
-      toast.error('대화 기록을 불러오는 중 오류가 발생했습니다.')
-      console.error(error)
-    } finally {
-      setState((prev) => ({ ...prev, isLoading: false, loadingMessage: null }))
-    }
-  }, [])
+  const loadMessages = useCallback(
+    async (sessionId: string) => {
+      setState({
+        title: '',
+        isLoading: true,
+        loadingMessage: null,
+        messages: [],
+        isFinished: false,
+      })
+      try {
+        const response = await fetch(
+          `${API_URL}/interview/messages?session_id=${sessionId}`
+        )
+        if (response.status === 404) {
+          navigate('/404', { replace: true })
+          return
+        }
+        if (!response.ok) throw new Error('Failed to load messages')
+
+        const data: MessagesResponse = await response.json()
+        setState((prev) => ({
+          ...prev,
+          title: data.title,
+          messages: data.messages,
+          isFinished: data.is_finished,
+        }))
+      } catch (error) {
+        toast.error('대화 기록을 불러오는 중 오류가 발생했습니다.')
+        console.error(error)
+      } finally {
+        setState((prev) => ({
+          ...prev,
+          isLoading: false,
+          loadingMessage: null,
+        }))
+      }
+    },
+    [navigate]
+  )
 
   return (
     <InterviewContext.Provider
